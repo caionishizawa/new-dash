@@ -2,13 +2,17 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
 import { CRYPTO_COLORS } from '../../utils/constants';
+import AssetIcon from '../common/AssetIcon';
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div className="bg-bg-secondary border border-border rounded-lg p-3 shadow-card">
-        <p className="text-text-primary font-semibold mb-1">{data.asset}</p>
+        <div className="flex items-center gap-2 mb-2">
+          <AssetIcon asset={data.asset} size="sm" />
+          <p className="text-text-primary font-semibold">{data.asset}</p>
+        </div>
         <p className="text-text-secondary text-sm">
           {formatCurrency(data.value)}
         </p>
@@ -26,11 +30,8 @@ const CustomLegend = ({ payload }) => {
     <div className="flex flex-wrap gap-3 justify-center mt-4">
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-text-secondary text-sm">
+          <AssetIcon asset={entry.value} size="sm" />
+          <span className="text-text-secondary text-sm font-medium">
             {entry.value}: {formatPercentage(entry.payload.percentage, 1, false)}
           </span>
         </div>

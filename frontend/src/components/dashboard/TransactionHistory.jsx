@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowDownLeft, ArrowUpRight, TrendingUp, DollarSign, Plus, Minus } from 'lucide-react';
 import { formatCurrency, formatDate, formatNumber } from '../../utils/formatters';
 import { LABELS, TRANSACTION_TYPES } from '../../utils/constants';
+import AssetIcon from '../common/AssetIcon';
 
 const getTransactionIcon = (type) => {
   switch (type) {
@@ -63,6 +64,7 @@ const TransactionHistory = ({ transactions }) => {
 
                 <div>
                   <div className="flex items-center gap-2">
+                    <AssetIcon asset={tx.asset} size="sm" />
                     <span className="font-medium text-text-primary">
                       {formatNumber(tx.quantity, 8)} {tx.asset}
                     </span>
