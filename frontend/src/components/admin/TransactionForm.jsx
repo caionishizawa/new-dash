@@ -248,22 +248,6 @@ const TransactionForm = ({ clients, onSuccess }) => {
               </select>
             </div>
 
-            {formData.asset === 'other' && (
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Nome do Ativo
-                </label>
-                <input
-                  type="text"
-                  value={customAsset}
-                  onChange={(e) => setCustomAsset(e.target.value)}
-                  placeholder="Digite o símbolo do ativo"
-                  required
-                  className="input-field w-full uppercase"
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">
                 {LABELS.quantity}
@@ -298,6 +282,22 @@ const TransactionForm = ({ clients, onSuccess }) => {
               />
             </div>
           </div>
+
+          {formData.asset === 'other' && (
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Nome do Ativo
+              </label>
+              <input
+                type="text"
+                value={customAsset}
+                onChange={(e) => setCustomAsset(e.target.value)}
+                placeholder="Digite o símbolo do ativo (ex: PENDLE, ENA, etc.)"
+                required
+                className="input-field w-full uppercase"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">
