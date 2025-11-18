@@ -62,6 +62,7 @@ export const clientAPI = {
 export const adminAPI = {
   getClients: () => api.get('/admin/clients'),
   addTransaction: (data) => api.post('/admin/transaction', data),
+  addBulkTransactions: (transactions) => api.post('/admin/transactions/bulk', transactions),
   updateTransaction: (id, data) => api.put(`/admin/transaction/${id}`, data),
   deleteTransaction: (id) => api.delete(`/admin/transaction/${id}`),
   updatePortfolio: (clientId, asset, data) =>

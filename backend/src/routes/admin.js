@@ -92,6 +92,96 @@ router.post('/transaction', async (req, res) => {
   }
 });
 
+// POST /api/admin/transactions/bulk
+router.post('/transactions/bulk', async (req, res) => {
+  try {
+    const transactions = req.body;
+
+    // Validar que é um array
+    if (!Array.isArray(transactions) || transactions.length === 0) {
+      return res.status(400).json({ error: 'Deve enviar um array de transações' });
+    }
+
+    const createdTransactions = [];
+    const errors = [];
+    const clientsToRecalculate = new Set();
+
+    // Processar cada transação
+    for (let i = 0; i < transactions.length; i++) {
+      const { clientId, date, type, asset, quantity, priceUsd, notes } = transactions[i];
+
+      try {
+        // Validações
+        if (!clientId || !date || !type || !asset || !quantity || priceUsd === undefined) {
+          errors.push({ index: i, error: 'Campos obrigatórios faltando' });
+          continue;
+        }
+
+        if (!validateDate(date)) {
+          errors.push({ index: i, error: 'Data inválida' });
+          continue;
+        }
+
+        if (!validateTransactionType(type)) {
+          errors.push({ index: i, error: 'Tipo de transação inválido' });
+          continue;
+        }
+
+        if (!validateAsset(asset)) {
+          errors.push({ index: i, error: 'Ativo inválido' });
+          continue;
+        }
+
+        if (!validateNumber(quantity) || quantity <= 0) {
+          errors.push({ index: i, error: 'Quantidade inválida' });
+          continue;
+        }
+
+        if (!validateNumber(priceUsd) || priceUsd < 0) {
+          errors.push({ index: i, error: 'Preço inválido' });
+          continue;
+        }
+
+        const totalUsd = quantity * priceUsd;
+
+        const transaction = Transaction.create({
+          clientId: parseInt(clientId),
+          date,
+          type,
+          asset,
+          quantity: parseFloat(quantity),
+          priceUsd: parseFloat(priceUsd),
+          totalUsd,
+          notes
+        });
+
+        createdTransactions.push(transaction);
+        clientsToRecalculate.add(parseInt(clientId));
+      } catch (error) {
+        errors.push({ index: i, error: error.message });
+      }
+    }
+
+    // Recalcular portfolios dos clientes afetados
+    for (const clientId of clientsToRecalculate) {
+      try {
+        await CalculationService.recalculatePortfolio(clientId);
+      } catch (error) {
+        console.error(`Erro ao recalcular portfolio do cliente ${clientId}:`, error);
+      }
+    }
+
+    res.status(201).json({
+      success: createdTransactions.length,
+      errors: errors.length,
+      transactions: createdTransactions,
+      errorDetails: errors
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // PUT /api/admin/transaction/:id
 router.put('/transaction/:id', async (req, res) => {
   try {
