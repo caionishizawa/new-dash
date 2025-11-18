@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Wallet, DollarSign, TrendingUp, Target, Percent } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardAPI } from '../services/api';
+import { LABELS } from '../utils/constants';
 import Navbar from '../components/common/Navbar';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -11,6 +12,7 @@ import PerformanceChart from '../components/dashboard/PerformanceChart';
 import AllocationChart from '../components/dashboard/AllocationChart';
 import PortfolioTable from '../components/dashboard/PortfolioTable';
 import TransactionHistory from '../components/dashboard/TransactionHistory';
+import PortfolioEditor from '../components/dashboard/PortfolioEditor';
 
 const ClientDashboard = () => {
   const { clientId } = useParams();
@@ -64,6 +66,8 @@ const ClientDashboard = () => {
   }
 
   const { stats, portfolio, allocation, history, transactions } = data;
+  const { isAdmin } = useAuth();
+  const currentClientId = clientId || user.id;
 
   return (
     <>
@@ -74,30 +78,30 @@ const ClientDashboard = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <StatsCard
-              title="Investido"
+              title={LABELS.invested}
               value={stats.invested}
               icon={DollarSign}
             />
             <StatsCard
-              title="Valor Total"
+              title={LABELS.totalValue}
               value={stats.actualValue}
               change={stats.gain.percent}
               icon={Wallet}
             />
             <StatsCard
-              title="Ganho/Perda"
+              title={LABELS.gain}
               value={stats.gain.absolute}
               change={stats.gain.percent}
               icon={TrendingUp}
             />
             <StatsCard
-              title="Vantagem vs HODL"
+              title={LABELS.hodlAdvantage}
               value={stats.advantage.absolute}
               change={stats.advantage.percent}
               icon={Target}
             />
             <StatsCard
-              title="APY Anual"
+              title={LABELS.apy}
               value={stats.apy}
               icon={Percent}
               isCurrency={false}
@@ -119,6 +123,15 @@ const ClientDashboard = () => {
           {/* Transaction History */}
           <TransactionHistory transactions={transactions} />
         </div>
+
+        {/* Portfolio Editor - Only for admins */}
+        {isAdmin() && (
+          <PortfolioEditor
+            clientId={currentClientId}
+            portfolio={portfolio}
+            onUpdate={fetchDashboard}
+          />
+        )}
       </main>
     </>
   );

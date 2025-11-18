@@ -7,7 +7,7 @@ export const LABELS = {
 
   // Dashboard
   totalValue: 'Valor Total',
-  invested: 'Investido',
+  invested: 'Valor Inicial Investido',
   gain: 'Ganho/Perda',
   hodlAdvantage: 'Vantagem vs HODL',
   apy: 'APY Anual',
