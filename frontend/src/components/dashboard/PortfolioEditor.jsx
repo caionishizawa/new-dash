@@ -3,6 +3,7 @@ import { Edit3, Plus, Trash2, Save, X } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import { formatNumber, formatCurrency } from '../../utils/formatters';
 import { LABELS } from '../../utils/constants';
+import CryptoIcon from '../common/CryptoIcon';
 
 const PortfolioEditor = ({ clientId, portfolio, onUpdate }) => {
   const [showEditor, setShowEditor] = useState(false);
@@ -125,14 +126,17 @@ const PortfolioEditor = ({ clientId, portfolio, onUpdate }) => {
                     key={index}
                     className="flex items-center justify-between p-4 bg-bg-tertiary rounded-lg hover:bg-border transition-colors"
                   >
-                    <div className="flex-1">
-                      <div className="font-semibold text-text-primary text-lg">
-                        {position.asset}
-                      </div>
-                      <div className="text-sm text-text-muted mt-1">
-                        Qtd: {formatNumber(position.quantity, 8)} |
-                        Preço Médio: {formatCurrency(position.avgBuyPrice)} |
-                        Valor: {formatCurrency(position.value)}
+                    <div className="flex items-center gap-3 flex-1">
+                      <CryptoIcon asset={position.asset} size="lg" />
+                      <div className="flex-1">
+                        <div className="font-semibold text-text-primary text-lg">
+                          {position.asset}
+                        </div>
+                        <div className="text-sm text-text-muted mt-1">
+                          Qtd: {formatNumber(position.quantity, 8)} |
+                          Preço Médio: {formatCurrency(position.avgBuyPrice)} |
+                          Valor: {formatCurrency(position.value)}
+                        </div>
                       </div>
                     </div>
                     <button

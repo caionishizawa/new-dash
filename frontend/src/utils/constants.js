@@ -87,6 +87,18 @@ export const CRYPTO_COLORS = {
   PENDLE: '#EC4899',
 };
 
+export const CRYPTO_INFO = {
+  BTC: { name: 'Bitcoin', symbol: '₿', color: '#F7931A' },
+  ETH: { name: 'Ethereum', symbol: 'Ξ', color: '#627EEA' },
+  SOL: { name: 'Solana', symbol: '◎', color: '#14F195' },
+  USDT: { name: 'Tether', symbol: '₮', color: '#26A17B' },
+  USDC: { name: 'USD Coin', symbol: '$', color: '#2775CA' },
+  DAI: { name: 'DAI', symbol: '◈', color: '#F4B731' },
+  USD: { name: 'US Dollar', symbol: '$', color: '#26A17B' },
+  ENA: { name: 'Ethena', symbol: 'E', color: '#8B5CF6' },
+  PENDLE: { name: 'Pendle', symbol: 'P', color: '#EC4899' },
+};
+
 export const CHART_COLORS = {
   portfolio: '#3B82F6',
   hodl: '#6B7280',
@@ -98,5 +110,6 @@ export default {
   LABELS,
   TRANSACTION_TYPES,
   CRYPTO_COLORS,
+  CRYPTO_INFO,
   CHART_COLORS,
 };
