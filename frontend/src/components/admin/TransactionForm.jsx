@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import { adminAPI } from '../../services/api';
-import { LABELS, TRANSACTION_TYPES } from '../../utils/constants';
+import { LABELS, TRANSACTION_TYPES, ASSETS } from '../../utils/constants';
 
 const TransactionForm = ({ clients, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [customAsset, setCustomAsset] = useState('');
   const [formData, setFormData] = useState({
     clientId: '',
     date: new Date().toISOString().split('T')[0],
@@ -28,6 +29,7 @@ const TransactionForm = ({ clients, onSuccess }) => {
       priceUsd: '',
       notes: '',
     });
+    setCustomAsset('');
   };
 
   const handleAddToList = (e) => {
@@ -38,8 +40,17 @@ const TransactionForm = ({ clients, onSuccess }) => {
       return;
     }
 
+    // Se selecionou "other", usar o customAsset
+    const finalAsset = formData.asset === 'other' ? customAsset.toUpperCase() : formData.asset;
+
+    if (formData.asset === 'other' && !customAsset.trim()) {
+      setError('Digite o nome do ativo');
+      return;
+    }
+
     const newTransaction = {
       ...formData,
+      asset: finalAsset,
       quantity: parseFloat(formData.quantity),
       priceUsd: parseFloat(formData.priceUsd),
       totalUsd: parseFloat(formData.quantity) * parseFloat(formData.priceUsd),
@@ -63,15 +74,26 @@ const TransactionForm = ({ clients, onSuccess }) => {
 
   const handleEdit = (index) => {
     const transaction = transactions[index];
+
+    // Verificar se o ativo está na lista de ativos predefinidos
+    const isCustomAsset = !ASSETS.some(a => a.value === transaction.asset);
+
     setFormData({
       clientId: transaction.clientId,
       date: transaction.date,
       type: transaction.type,
-      asset: transaction.asset,
+      asset: isCustomAsset ? 'other' : transaction.asset,
       quantity: transaction.quantity.toString(),
       priceUsd: transaction.priceUsd.toString(),
       notes: transaction.notes || '',
     });
+
+    if (isCustomAsset) {
+      setCustomAsset(transaction.asset);
+    } else {
+      setCustomAsset('');
+    }
+
     setEditingIndex(index);
   };
 
@@ -211,16 +233,36 @@ const TransactionForm = ({ clients, onSuccess }) => {
               <label className="block text-sm font-medium text-text-secondary mb-2">
                 {LABELS.asset}
               </label>
-              <input
-                type="text"
+              <select
                 name="asset"
                 value={formData.asset}
                 onChange={handleChange}
-                placeholder="BTC, ETH, SOL..."
                 required
-                className="input-field w-full uppercase"
-              />
+                className="input-field w-full"
+              >
+                {ASSETS.map((asset) => (
+                  <option key={asset.value} value={asset.value}>
+                    {asset.label}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {formData.asset === 'other' && (
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Nome do Ativo
+                </label>
+                <input
+                  type="text"
+                  value={customAsset}
+                  onChange={(e) => setCustomAsset(e.target.value)}
+                  placeholder="Digite o símbolo do ativo"
+                  required
+                  className="input-field w-full uppercase"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">

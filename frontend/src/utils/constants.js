@@ -75,6 +75,16 @@ export const TRANSACTION_TYPES = [
   { value: 'withdrawal', label: 'Saque', color: 'text-warning' },
 ];
 
+export const ASSETS = [
+  { value: 'BTC', label: 'Bitcoin (BTC)' },
+  { value: 'ETH', label: 'Ethereum (ETH)' },
+  { value: 'SOL', label: 'Solana (SOL)' },
+  { value: 'USD', label: 'USD' },
+  { value: 'USDT', label: 'Tether (USDT)' },
+  { value: 'USDC', label: 'USD Coin (USDC)' },
+  { value: 'other', label: 'Outro (digite manualmente)' },
+];
+
 export const CRYPTO_COLORS = {
   BTC: '#F7931A',
   ETH: '#627EEA',
@@ -97,6 +107,7 @@ export const CHART_COLORS = {
 export default {
   LABELS,
   TRANSACTION_TYPES,
+  ASSETS,
   CRYPTO_COLORS,
   CHART_COLORS,
 };
