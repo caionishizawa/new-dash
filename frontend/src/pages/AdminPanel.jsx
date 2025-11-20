@@ -45,6 +45,7 @@ const AdminPanel = () => {
     }
   };
 
+  // Tabs de navegação do painel administrativo
   const tabs = [
     { id: 'overview', label: LABELS.overview, icon: LayoutDashboard },
     { id: 'clients', label: LABELS.clients, icon: Users },
