@@ -8,6 +8,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import clientRoutes from './routes/client.js';
 import adminRoutes from './routes/admin.js';
 import pricesRoutes from './routes/prices.js';
+import usersRoutes from './routes/users.js';
 import startCronJobs from './scripts/cron.js';
 import logger from './utils/logger.js';
 
@@ -47,6 +48,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/prices', pricesRoutes);
+app.use('/api/users', usersRoutes);
 
 // Error handling
 app.use(notFound);
