@@ -2,6 +2,7 @@ import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { formatCurrency, formatNumber, formatPercentage } from '../../utils/formatters';
 import { LABELS } from '../../utils/constants';
+import CryptoIcon from '../common/CryptoIcon';
 
 const PortfolioTable = ({ portfolio }) => {
   if (!portfolio || portfolio.length === 0) {
@@ -54,15 +55,18 @@ const PortfolioTable = ({ portfolio }) => {
               return (
                 <tr key={index} className="table-row">
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-text-primary">
-                        {item.asset}
-                      </span>
-                      {item.protocol && (
-                        <span className="badge bg-accent/10 text-accent text-xs">
-                          {item.protocol}
+                    <div className="flex items-center gap-3">
+                      <CryptoIcon asset={item.asset} size="md" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-text-primary">
+                          {item.asset}
                         </span>
-                      )}
+                        {item.protocol && (
+                          <span className="badge bg-accent/10 text-accent text-xs mt-1">
+                            {item.protocol}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-right font-mono text-text-primary">
