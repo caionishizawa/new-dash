@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import { LABELS, TRANSACTION_TYPES } from '../../utils/constants';
+import CryptoIcon from '../common/CryptoIcon';
 
 const TransactionForm = ({ clients, onSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,17 @@ const TransactionForm = ({ clients, onSuccess }) => {
     priceUsd: '',
     notes: '',
   });
+
+  const availableAssets = [
+    { value: 'BTC', label: 'Bitcoin' },
+    { value: 'ETH', label: 'Ethereum' },
+    { value: 'SOL', label: 'Solana' },
+    { value: 'USDT', label: 'Tether' },
+    { value: 'USDC', label: 'USD Coin' },
+    { value: 'DAI', label: 'DAI' },
+    { value: 'ENA', label: 'Ethena' },
+    { value: 'PENDLE', label: 'Pendle' },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,19 +129,34 @@ const TransactionForm = ({ clients, onSuccess }) => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-text-secondary mb-3">
               {LABELS.asset}
             </label>
-            <input
-              type="text"
-              name="asset"
-              value={formData.asset}
-              onChange={handleChange}
-              placeholder="BTC, ETH, SOL..."
-              required
-              className="input-field w-full uppercase"
-            />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {availableAssets.map((asset) => (
+                <button
+                  key={asset.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, asset: asset.value })}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover:scale-105 ${
+                    formData.asset === asset.value
+                      ? 'border-accent bg-accent/10 shadow-lg'
+                      : 'border-border bg-bg-tertiary hover:border-accent/50'
+                  }`}
+                >
+                  <CryptoIcon asset={asset.value} size="lg" />
+                  <div className="text-center">
+                    <div className="font-semibold text-text-primary text-sm">
+                      {asset.value}
+                    </div>
+                    <div className="text-xs text-text-muted">
+                      {asset.label}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>
