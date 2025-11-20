@@ -53,6 +53,9 @@ const AdminPanel = () => {
     { id: 'users', label: 'Usuários', icon: UserCog },
   ];
 
+  // Debug: verificar se as tabs estão sendo carregadas
+  console.log('AdminPanel tabs:', tabs);
+
   if (loading) {
     return (
       <>
