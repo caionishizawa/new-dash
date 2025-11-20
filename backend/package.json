@@ -11,17 +11,22 @@
     "migrate": "node src/scripts/migrate.js",
     "backup": "node src/utils/backup.js"
   },
-  "keywords": ["crypto", "portfolio", "investment"],
+  "keywords": [
+    "crypto",
+    "portfolio",
+    "investment"
+  ],
   "author": "Nishizawa Capital",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "axios": "^1.6.2",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^9.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "bcrypt": "^5.1.1",
-    "better-sqlite3": "^9.2.2",
-    "axios": "^1.6.2",
     "node-cron": "^3.0.3",
     "winston": "^3.11.0"
   },
