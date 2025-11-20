@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, Plus, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, RefreshCw, UserCog } from 'lucide-react';
 import { adminAPI, pricesAPI } from '../services/api';
 import Navbar from '../components/common/Navbar';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import ClientList from '../components/admin/ClientList';
 import TransactionForm from '../components/admin/TransactionForm';
+import UserManagement from '../components/admin/UserManagement';
 import { LABELS } from '../utils/constants';
 
 const AdminPanel = () => {
@@ -48,6 +49,7 @@ const AdminPanel = () => {
     { id: 'overview', label: LABELS.overview, icon: LayoutDashboard },
     { id: 'clients', label: LABELS.clients, icon: Users },
     { id: 'transaction', label: LABELS.addTransaction, icon: Plus },
+    { id: 'users', label: 'Usuários', icon: UserCog },
   ];
 
   if (loading) {
@@ -161,6 +163,8 @@ const AdminPanel = () => {
                 onSuccess={fetchClients}
               />
             )}
+
+            {activeTab === 'users' && <UserManagement />}
           </div>
         </div>
       </main>

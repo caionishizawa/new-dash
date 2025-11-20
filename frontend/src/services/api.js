@@ -78,4 +78,13 @@ export const pricesAPI = {
   updatePrices: () => api.post('/prices/update'),
 };
 
+// Users
+export const usersAPI = {
+  getAll: () => api.get('/users'),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+  activate: (id) => api.patch(`/users/${id}/activate`),
+};
+
 export default api;
