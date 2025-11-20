@@ -128,37 +128,40 @@ const TransactionForm = ({ clients, onSuccess }) => {
               ))}
             </select>
           </div>
+        </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-text-secondary mb-3">
-              {LABELS.asset}
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {availableAssets.map((asset) => (
-                <button
-                  key={asset.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, asset: asset.value })}
-                  className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover:scale-105 ${
-                    formData.asset === asset.value
-                      ? 'border-accent bg-accent/10 shadow-lg'
-                      : 'border-border bg-bg-tertiary hover:border-accent/50'
-                  }`}
-                >
-                  <CryptoIcon asset={asset.value} size="lg" />
-                  <div className="text-center">
-                    <div className="font-semibold text-text-primary text-sm">
-                      {asset.value}
-                    </div>
-                    <div className="text-xs text-text-muted">
-                      {asset.label}
-                    </div>
+        {/* Seção de Ativos - Largura Total */}
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-3">
+            {LABELS.asset}
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {availableAssets.map((asset) => (
+              <button
+                key={asset.value}
+                type="button"
+                onClick={() => setFormData({ ...formData, asset: asset.value })}
+                className={`p-3 rounded-lg border-2 transition-all duration-200 flex flex-col items-center gap-2 hover:scale-105 ${
+                  formData.asset === asset.value
+                    ? 'border-accent bg-accent/10 shadow-lg'
+                    : 'border-border bg-bg-tertiary hover:border-accent/50'
+                }`}
+              >
+                <CryptoIcon asset={asset.value} size="lg" />
+                <div className="text-center">
+                  <div className="font-semibold text-text-primary text-sm">
+                    {asset.value}
                   </div>
-                </button>
-              ))}
-            </div>
+                  <div className="text-xs text-text-muted">
+                    {asset.label}
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">
               {LABELS.quantity}
