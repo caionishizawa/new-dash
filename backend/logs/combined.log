@@ -2,3 +2,4 @@
 {"ip":"::1","level":"info","message":"POST /api/auth/login","timestamp":"2025-11-18T06:07:02.943Z","userAgent":"curl/8.5.0"}
 {"ip":"::1","level":"info","message":"GET /api/dashboard/2","timestamp":"2025-11-18T06:07:13.091Z","userAgent":"curl/8.5.0"}
 {"ip":"::1","level":"info","message":"GET /api/dashboard/2","timestamp":"2025-11-18T06:07:22.987Z","userAgent":"curl/8.5.0"}
+{"ip":"::1","level":"info","message":"GET /health","timestamp":"2025-11-20T18:52:21.604Z","userAgent":"curl/8.5.0"}
