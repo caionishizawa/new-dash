@@ -2,7 +2,7 @@ import express from 'express';
 import Client from '../models/Client.js';
 import authenticateToken from '../middleware/auth.js';
 import { validateEmail, validatePassword } from '../utils/validators.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
