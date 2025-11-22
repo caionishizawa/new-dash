@@ -13,7 +13,7 @@ export class SnapshotService {
     const prices = await PriceService.getCurrentPrices();
     const stats = await CalculationService.getDashboardStats(clientId);
 
-    const snapshot = Snapshot.create({
+    const snapshot = await Snapshot.create({
       clientId,
       date: snapshotDate,
       totalValueUsd: stats.actualValue,
@@ -32,7 +32,7 @@ export class SnapshotService {
    * Cria snapshots para todos os clientes ativos
    */
   static async createDailySnapshots() {
-    const clients = Client.findAll();
+    const clients = await Client.findAll();
     const results = [];
 
     for (const client of clients) {

@@ -7,8 +7,8 @@ export class CalculationService {
   /**
    * Calcula o valor HODL (se não tivesse feito nada)
    */
-  static calculateHODL(clientId, currentPrices) {
-    const initialTransactions = Transaction.getInitialTransactions(clientId);
+  static async calculateHODL(clientId, currentPrices) {
+    const initialTransactions = await Transaction.getInitialTransactions(clientId);
     const initialQuantities = {};
 
     initialTransactions.forEach(tx => {
@@ -30,8 +30,8 @@ export class CalculationService {
   /**
    * Calcula o valor atual do portfólio (com rendimentos)
    */
-  static calculateActualValue(clientId, currentPrices) {
-    const positions = PortfolioPosition.findByClient(clientId);
+  static async calculateActualValue(clientId, currentPrices) {
+    const positions = await PortfolioPosition.findByClient(clientId);
 
     let actualValue = 0;
     positions.forEach(pos => {
@@ -75,7 +75,7 @@ export class CalculationService {
    * Recalcula as posições do portfólio baseado nas transações
    */
   static async recalculatePortfolio(clientId) {
-    const transactions = Transaction.findByClient(clientId);
+    const transactions = await Transaction.findByClient(clientId);
     const prices = await PriceService.getCurrentPrices();
     const positions = {};
 
@@ -119,12 +119,12 @@ export class CalculationService {
     });
 
     // Limpar posições antigas
-    PortfolioPosition.deleteByClient(clientId);
+    await PortfolioPosition.deleteByClient(clientId);
 
     // Criar novas posições
     for (const [asset, pos] of Object.entries(positions)) {
       if (pos.quantity > 0.00000001) {
-        PortfolioPosition.create({
+        await PortfolioPosition.create({
           clientId,
           asset,
           quantity: pos.quantity,
@@ -136,15 +136,15 @@ export class CalculationService {
       }
     }
 
-    return PortfolioPosition.findByClient(clientId);
+    return await PortfolioPosition.findByClient(clientId);
   }
 
   /**
    * Calcula a alocação por ativo
    */
-  static calculateAllocation(clientId, currentPrices) {
-    const positions = PortfolioPosition.findByClient(clientId);
-    const totalValue = this.calculateActualValue(clientId, currentPrices);
+  static async calculateAllocation(clientId, currentPrices) {
+    const positions = await PortfolioPosition.findByClient(clientId);
+    const totalValue = await this.calculateActualValue(clientId, currentPrices);
 
     const allocation = positions.map(pos => {
       const currentPrice = currentPrices[pos.asset] || pos.current_price || 0;
@@ -166,15 +166,15 @@ export class CalculationService {
    * Gera estatísticas completas do dashboard
    */
   static async getDashboardStats(clientId) {
-    const client = Client.findById(clientId);
+    const client = await Client.findById(clientId);
     if (!client) {
       throw new Error('Cliente não encontrado');
     }
 
     const prices = await PriceService.getCurrentPrices();
-    const invested = Transaction.getTotalInvested(clientId);
-    const actualValue = this.calculateActualValue(clientId, prices);
-    const hodlValue = this.calculateHODL(clientId, prices);
+    const invested = await Transaction.getTotalInvested(clientId);
+    const actualValue = await this.calculateActualValue(clientId, prices);
+    const hodlValue = await this.calculateHODL(clientId, prices);
     const advantage = this.calculateAdvantage(actualValue, hodlValue);
     const daysSinceEntry = Client.getDaysSinceEntry(client.entry_date);
     const apy = this.calculateAPY(invested, actualValue, daysSinceEntry);

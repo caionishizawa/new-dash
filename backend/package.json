@@ -19,6 +19,7 @@
   "author": "Nishizawa Capital",
   "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
     "axios": "^1.6.2",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^9.2.2",

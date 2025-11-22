@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   static async login(email, password) {
-    const client = Client.findByEmail(email);
+    const client = await Client.findByEmail(email);
 
     if (!client) {
       throw new Error('E-mail ou senha inválidos');
@@ -66,14 +66,14 @@ export class AuthService {
   static async register(data) {
     const { name, email, password, role = 'client', entryDate } = data;
 
-    const existingClient = Client.findByEmail(email);
+    const existingClient = await Client.findByEmail(email);
     if (existingClient) {
       throw new Error('E-mail já cadastrado');
     }
 
     const passwordHash = await this.hashPassword(password);
 
-    const client = Client.create({
+    const client = await Client.create({
       name,
       email,
       passwordHash,
@@ -95,7 +95,7 @@ export class AuthService {
   }
 
   static async changePassword(userId, oldPassword, newPassword) {
-    const client = Client.findById(userId);
+    const client = await Client.findById(userId);
 
     if (!client) {
       throw new Error('Usuário não encontrado');
@@ -109,7 +109,7 @@ export class AuthService {
 
     const newPasswordHash = await this.hashPassword(newPassword);
 
-    Client.update(userId, { passwordHash: newPasswordHash });
+    await Client.update(userId, { passwordHash: newPasswordHash });
 
     return true;
   }

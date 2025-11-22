@@ -22,7 +22,7 @@ router.get('/:clientId', authenticateToken, checkClientAccess, async (req, res) 
     const prices = await PriceService.getCurrentPrices();
 
     // Portfolio
-    const portfolio = PortfolioPosition.findByClient(clientId);
+    const portfolio = await PortfolioPosition.findByClient(clientId);
 
     const portfolioWithValues = portfolio.map(pos => {
       const currentPrice = prices[pos.asset] || pos.current_price;
@@ -46,7 +46,7 @@ router.get('/:clientId', authenticateToken, checkClientAccess, async (req, res) 
     });
 
     // Alocação
-    const allocation = CalculationService.calculateAllocation(clientId, prices);
+    const allocation = await CalculationService.calculateAllocation(clientId, prices);
 
     // Histórico de performance (snapshots)
     const endDate = new Date().toISOString().split('T')[0];
@@ -54,7 +54,7 @@ router.get('/:clientId', authenticateToken, checkClientAccess, async (req, res) 
       .toISOString()
       .split('T')[0];
 
-    const history = Snapshot.findByClientAndDateRange(clientId, startDate, endDate);
+    const history = await Snapshot.findByClientAndDateRange(clientId, startDate, endDate);
 
     const historyData = history.map(snap => ({
       date: snap.date,
@@ -65,7 +65,7 @@ router.get('/:clientId', authenticateToken, checkClientAccess, async (req, res) 
     }));
 
     // Transações recentes
-    const recentTransactions = Transaction.findByClient(clientId, 10);
+    const recentTransactions = await Transaction.findByClient(clientId, 10);
 
     const transactionsData = recentTransactions.map(tx => ({
       id: tx.id,

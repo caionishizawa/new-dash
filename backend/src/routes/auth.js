@@ -33,20 +33,24 @@ router.post('/logout', authenticateToken, (req, res) => {
 });
 
 // GET /api/auth/me
-router.get('/me', authenticateToken, (req, res) => {
-  const client = Client.findById(req.user.id);
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const client = await Client.findById(req.user.id);
 
-  if (!client) {
-    return res.status(404).json({ error: 'Usuário não encontrado' });
+    if (!client) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json({
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      role: client.role,
+      entryDate: client.entry_date
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  res.json({
-    id: client.id,
-    name: client.name,
-    email: client.email,
-    role: client.role,
-    entryDate: client.entry_date
-  });
 });
 
 // POST /api/auth/register (apenas para admin criar novos clientes)
