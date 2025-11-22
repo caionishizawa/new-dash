@@ -9,7 +9,7 @@ export const LABELS = {
   totalValue: 'Valor Total',
   invested: 'Valor Inicial Investido',
   gain: 'Ganho/Perda',
-  hodlAdvantage: 'Vantagem vs HODL',
+  hodlAdvantage: 'Vantagem de assessoria',
   apy: 'APY Anual',
   performance: 'Performance',
   allocation: 'Alocação',

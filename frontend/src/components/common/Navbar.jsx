@@ -16,7 +16,7 @@ const Navbar = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-text-primary">
-                Nishizawa Capital
+                Bem-vindo, {user?.name || 'Cliente'}
               </h1>
               {user?.role === 'admin' && (
                 <span className="text-xs text-accent font-medium">Painel Admin</span>
