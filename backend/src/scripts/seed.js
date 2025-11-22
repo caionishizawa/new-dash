@@ -1,28 +1,21 @@
-import getDatabase from '../config/database.js';
 import AuthService from '../services/authService.js';
 import Client from '../models/Client.js';
 import Transaction from '../models/Transaction.js';
 import PriceService from '../services/priceService.js';
 import CalculationService from '../services/calculationService.js';
-import runMigrations from './migrate.js';
 import { config } from '../config/environment.js';
 
 async function seed() {
-  console.log('Iniciando seed do banco de dados...');
-
-  // Executar migrations primeiro
-  runMigrations();
-
-  const db = getDatabase();
+  console.log('Iniciando seed do banco de dados Supabase...');
 
   // Verificar se já existe admin
-  const existingAdmin = Client.findByEmail(config.adminEmail);
+  const existingAdmin = await Client.findByEmail(config.adminEmail);
   if (existingAdmin) {
     console.log('Admin já existe. Pulando criação do admin.');
   } else {
     // Criar admin
     const adminPasswordHash = await AuthService.hashPassword(config.adminPassword);
-    const admin = Client.create({
+    const admin = await Client.create({
       name: config.adminName,
       email: config.adminEmail,
       passwordHash: adminPasswordHash,
@@ -33,13 +26,13 @@ async function seed() {
   }
 
   // Verificar se já existe cliente teste
-  const existingClient = Client.findByEmail('cliente@teste.com');
+  const existingClient = await Client.findByEmail('cliente@teste.com');
   if (existingClient) {
     console.log('Cliente teste já existe. Pulando criação do cliente teste.');
   } else {
     // Criar cliente teste
     const clientPasswordHash = await AuthService.hashPassword('cliente123');
-    const client = Client.create({
+    const client = await Client.create({
       name: 'Cliente Teste',
       email: 'cliente@teste.com',
       passwordHash: clientPasswordHash,
@@ -59,9 +52,9 @@ async function seed() {
       { date: '2024-10-15', type: 'yield', asset: 'SOL', quantity: 1.5, priceUsd: 160, notes: 'Yield Marinade' }
     ];
 
-    transactions.forEach(tx => {
+    for (const tx of transactions) {
       const totalUsd = tx.quantity * tx.priceUsd;
-      Transaction.create({
+      await Transaction.create({
         clientId: client.id,
         date: tx.date,
         type: tx.type,
@@ -71,7 +64,7 @@ async function seed() {
         totalUsd: totalUsd,
         notes: tx.notes
       });
-    });
+    }
     console.log(`✓ ${transactions.length} transações criadas para o cliente teste`);
 
     // Recalcular portfolio do cliente teste
@@ -101,7 +94,7 @@ async function seed() {
       USD: 1.0
     };
 
-    PriceService.updatePriceCache(defaultPrices);
+    await PriceService.updatePriceCache(defaultPrices);
     console.log('✓ Preços padrão configurados');
   }
 

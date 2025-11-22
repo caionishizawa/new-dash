@@ -1,43 +1,59 @@
-import getDatabase from '../config/database.js';
+import supabase from '../config/supabase.js';
 
 export class PortfolioPosition {
-  static findAll() {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM portfolio_positions ORDER BY client_id, asset').all();
+  static async findAll() {
+    const { data, error } = await supabase
+      .from('portfolio_positions')
+      .select('*')
+      .order('client_id')
+      .order('asset');
+
+    if (error) throw error;
+    return data;
   }
 
-  static findById(id) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM portfolio_positions WHERE id = ?').get(id);
+  static async findById(id) {
+    const { data, error } = await supabase
+      .from('portfolio_positions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static findByClient(clientId) {
-    const db = getDatabase();
-    return db.prepare(`
-      SELECT * FROM portfolio_positions
-      WHERE client_id = ?
-      ORDER BY asset
-    `).all(clientId);
+  static async findByClient(clientId) {
+    const { data, error } = await supabase
+      .from('portfolio_positions')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('asset');
+
+    if (error) throw error;
+    return data;
   }
 
-  static findByClientAndAsset(clientId, asset, protocol = null) {
-    const db = getDatabase();
+  static async findByClientAndAsset(clientId, asset, protocol = null) {
+    let query = supabase
+      .from('portfolio_positions')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('asset', asset);
 
     if (protocol) {
-      return db.prepare(`
-        SELECT * FROM portfolio_positions
-        WHERE client_id = ? AND asset = ? AND protocol = ?
-      `).get(clientId, asset, protocol);
+      query = query.eq('protocol', protocol);
     } else {
-      return db.prepare(`
-        SELECT * FROM portfolio_positions
-        WHERE client_id = ? AND asset = ? AND protocol IS NULL
-      `).get(clientId, asset);
+      query = query.is('protocol', null);
     }
+
+    const { data, error } = await query.single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static create(data) {
-    const db = getDatabase();
+  static async create(data) {
     const {
       clientId,
       asset,
@@ -48,84 +64,76 @@ export class PortfolioPosition {
       chain = null
     } = data;
 
-    const stmt = db.prepare(`
-      INSERT INTO portfolio_positions (
-        client_id, asset, quantity, avg_buy_price, current_price, protocol, chain
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(client_id, asset, protocol) DO UPDATE SET
-        quantity = excluded.quantity,
-        avg_buy_price = excluded.avg_buy_price,
-        current_price = excluded.current_price,
-        chain = excluded.chain,
-        updated_at = CURRENT_TIMESTAMP
-    `);
+    // Upsert - insere ou atualiza se já existir
+    const { data: position, error } = await supabase
+      .from('portfolio_positions')
+      .upsert({
+        client_id: clientId,
+        asset,
+        quantity,
+        avg_buy_price: avgBuyPrice,
+        current_price: currentPrice,
+        protocol,
+        chain,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'client_id,asset,protocol'
+      })
+      .select()
+      .single();
 
-    const result = stmt.run(
-      clientId, asset, quantity, avgBuyPrice, currentPrice, protocol, chain
-    );
-
-    return this.findByClientAndAsset(clientId, asset, protocol);
+    if (error) throw error;
+    return position;
   }
 
-  static update(id, data) {
-    const db = getDatabase();
-    const updates = [];
-    const values = [];
+  static async update(id, data) {
+    const updates = { updated_at: new Date().toISOString() };
 
-    if (data.quantity !== undefined) {
-      updates.push('quantity = ?');
-      values.push(data.quantity);
-    }
-    if (data.avgBuyPrice !== undefined) {
-      updates.push('avg_buy_price = ?');
-      values.push(data.avgBuyPrice);
-    }
-    if (data.currentPrice !== undefined) {
-      updates.push('current_price = ?');
-      values.push(data.currentPrice);
-    }
-    if (data.protocol !== undefined) {
-      updates.push('protocol = ?');
-      values.push(data.protocol);
-    }
-    if (data.chain !== undefined) {
-      updates.push('chain = ?');
-      values.push(data.chain);
-    }
+    if (data.quantity !== undefined) updates.quantity = data.quantity;
+    if (data.avgBuyPrice !== undefined) updates.avg_buy_price = data.avgBuyPrice;
+    if (data.currentPrice !== undefined) updates.current_price = data.currentPrice;
+    if (data.protocol !== undefined) updates.protocol = data.protocol;
+    if (data.chain !== undefined) updates.chain = data.chain;
 
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(id);
+    const { data: updated, error } = await supabase
+      .from('portfolio_positions')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
 
-    const stmt = db.prepare(`
-      UPDATE portfolio_positions SET ${updates.join(', ')} WHERE id = ?
-    `);
-
-    stmt.run(...values);
-    return this.findById(id);
+    if (error) throw error;
+    return updated;
   }
 
-  static delete(id) {
-    const db = getDatabase();
-    const stmt = db.prepare('DELETE FROM portfolio_positions WHERE id = ?');
-    return stmt.run(id);
+  static async delete(id) {
+    const { error } = await supabase
+      .from('portfolio_positions')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { changes: 1 };
   }
 
-  static deleteByClient(clientId) {
-    const db = getDatabase();
-    const stmt = db.prepare('DELETE FROM portfolio_positions WHERE client_id = ?');
-    return stmt.run(clientId);
+  static async deleteByClient(clientId) {
+    const { error } = await supabase
+      .from('portfolio_positions')
+      .delete()
+      .eq('client_id', clientId);
+
+    if (error) throw error;
+    return { changes: 1 };
   }
 
-  static updateCurrentPrices(clientId, prices) {
-    const db = getDatabase();
-    const positions = this.findByClient(clientId);
+  static async updateCurrentPrices(clientId, prices) {
+    const positions = await this.findByClient(clientId);
 
-    positions.forEach(position => {
+    for (const position of positions) {
       if (prices[position.asset]) {
-        this.update(position.id, { currentPrice: prices[position.asset] });
+        await this.update(position.id, { currentPrice: prices[position.asset] });
       }
-    });
+    }
   }
 }
 

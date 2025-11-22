@@ -21,9 +21,9 @@ router.use(authenticateToken);
 router.use(requireAdmin);
 
 // GET /api/admin/clients
-router.get('/clients', (req, res) => {
+router.get('/clients', async (req, res) => {
   try {
-    const clients = Client.findAll();
+    const clients = await Client.findAll();
 
     const clientsData = clients.map(c => ({
       id: c.id,
@@ -72,7 +72,7 @@ router.post('/transaction', async (req, res) => {
 
     const totalUsd = quantity * priceUsd;
 
-    const transaction = Transaction.create({
+    const transaction = await Transaction.create({
       clientId: parseInt(clientId),
       date,
       type,
@@ -98,7 +98,7 @@ router.put('/transaction/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const { date, type, asset, quantity, priceUsd, notes } = req.body;
 
-    const transaction = Transaction.findById(id);
+    const transaction = await Transaction.findById(id);
     if (!transaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
@@ -151,7 +151,7 @@ router.put('/transaction/:id', async (req, res) => {
       updates.totalUsd = finalQuantity * finalPrice;
     }
 
-    const updated = Transaction.update(id, updates);
+    const updated = await Transaction.update(id, updates);
 
     // Recalcular portfolio
     await CalculationService.recalculatePortfolio(transaction.client_id);
@@ -167,14 +167,14 @@ router.delete('/transaction/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
-    const transaction = Transaction.findById(id);
+    const transaction = await Transaction.findById(id);
     if (!transaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
 
     const clientId = transaction.client_id;
 
-    Transaction.delete(id);
+    await Transaction.delete(id);
 
     // Recalcular portfolio
     await CalculationService.recalculatePortfolio(clientId);
@@ -192,7 +192,7 @@ router.put('/portfolio/:clientId/:asset', async (req, res) => {
     const asset = req.params.asset;
     const { quantity, avgBuyPrice, protocol } = req.body;
 
-    const position = PortfolioPosition.findByClientAndAsset(clientId, asset, protocol || null);
+    const position = await PortfolioPosition.findByClientAndAsset(clientId, asset, protocol || null);
 
     if (!position) {
       return res.status(404).json({ error: 'Posição não encontrada' });
@@ -214,7 +214,7 @@ router.put('/portfolio/:clientId/:asset', async (req, res) => {
       updates.avgBuyPrice = parseFloat(avgBuyPrice);
     }
 
-    const updated = PortfolioPosition.update(position.id, updates);
+    const updated = await PortfolioPosition.update(position.id, updates);
 
     res.json(updated);
   } catch (error) {

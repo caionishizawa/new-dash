@@ -1,5 +1,5 @@
 import axios from 'axios';
-import getDatabase from '../config/database.js';
+import supabase from '../config/supabase.js';
 import { config } from '../config/environment.js';
 
 const COINGECKO_MAP = {
@@ -36,37 +36,47 @@ export class PriceService {
         }
       }
 
-      this.updatePriceCache(prices);
+      await this.updatePriceCache(prices);
       return prices;
     } catch (error) {
       console.error('Erro ao buscar preços do CoinGecko:', error.message);
-      return this.getPricesFromCache();
+      return await this.getPricesFromCache();
     }
   }
 
-  static updatePriceCache(prices) {
-    const db = getDatabase();
+  static async updatePriceCache(prices) {
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
-      INSERT INTO price_cache (asset, price_usd, last_updated, source)
-      VALUES (?, ?, ?, 'coingecko')
-      ON CONFLICT(asset) DO UPDATE SET
-        price_usd = excluded.price_usd,
-        last_updated = excluded.last_updated
-    `);
-
     for (const [asset, price] of Object.entries(prices)) {
-      stmt.run(asset, price, now);
+      const { error } = await supabase
+        .from('price_cache')
+        .upsert({
+          asset,
+          price_usd: price,
+          last_updated: now,
+          source: 'coingecko'
+        }, {
+          onConflict: 'asset'
+        });
+
+      if (error) {
+        console.error(`Erro ao atualizar cache de preço para ${asset}:`, error.message);
+      }
     }
   }
 
-  static getPricesFromCache() {
-    const db = getDatabase();
-    const rows = db.prepare('SELECT asset, price_usd FROM price_cache').all();
+  static async getPricesFromCache() {
+    const { data, error } = await supabase
+      .from('price_cache')
+      .select('asset, price_usd');
+
+    if (error) {
+      console.error('Erro ao buscar preços do cache:', error.message);
+      return this.getDefaultPrices();
+    }
 
     const prices = {};
-    rows.forEach(row => {
+    data.forEach(row => {
       prices[row.asset] = row.price_usd;
     });
 
@@ -79,18 +89,35 @@ export class PriceService {
     return prices;
   }
 
-  static async getCurrentPrices() {
-    const db = getDatabase();
-    const cached = db.prepare('SELECT last_updated FROM price_cache LIMIT 1').get();
+  static getDefaultPrices() {
+    return {
+      BTC: 100000,
+      ETH: 3500,
+      SOL: 150,
+      ENA: 1.2,
+      PENDLE: 5.5,
+      USDT: 1.0,
+      USDC: 1.0,
+      DAI: 1.0,
+      USD: 1.0
+    };
+  }
 
-    if (cached) {
+  static async getCurrentPrices() {
+    const { data: cached, error } = await supabase
+      .from('price_cache')
+      .select('last_updated')
+      .limit(1)
+      .single();
+
+    if (!error && cached) {
       const lastUpdate = new Date(cached.last_updated);
       const now = new Date();
       const diffMinutes = (now - lastUpdate) / (1000 * 60);
 
       // Se o cache tem menos de 5 minutos, usar cache
       if (diffMinutes < 5) {
-        return this.getPricesFromCache();
+        return await this.getPricesFromCache();
       }
     }
 
@@ -98,12 +125,15 @@ export class PriceService {
     return await this.fetchPrices();
   }
 
-  static getPrice(asset) {
-    const db = getDatabase();
-    const row = db.prepare('SELECT price_usd FROM price_cache WHERE asset = ?').get(asset);
+  static async getPrice(asset) {
+    const { data, error } = await supabase
+      .from('price_cache')
+      .select('price_usd')
+      .eq('asset', asset)
+      .single();
 
-    if (row) {
-      return row.price_usd;
+    if (!error && data) {
+      return data.price_usd;
     }
 
     // Retornar 1.0 para stablecoins por padrão

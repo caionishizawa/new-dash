@@ -1,45 +1,70 @@
-import getDatabase from '../config/database.js';
+import supabase from '../config/supabase.js';
 
 export class Snapshot {
-  static findAll() {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM snapshots ORDER BY date DESC').all();
+  static async findAll() {
+    const { data, error } = await supabase
+      .from('snapshots')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data;
   }
 
-  static findById(id) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM snapshots WHERE id = ?').get(id);
+  static async findById(id) {
+    const { data, error } = await supabase
+      .from('snapshots')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static findByClient(clientId, limit = null) {
-    const db = getDatabase();
-    let query = 'SELECT * FROM snapshots WHERE client_id = ? ORDER BY date DESC';
+  static async findByClient(clientId, limit = null) {
+    let query = supabase
+      .from('snapshots')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('date', { ascending: false });
 
     if (limit) {
-      query += ` LIMIT ${limit}`;
+      query = query.limit(limit);
     }
 
-    return db.prepare(query).all(clientId);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
   }
 
-  static findByClientAndDateRange(clientId, startDate, endDate) {
-    const db = getDatabase();
-    return db.prepare(`
-      SELECT * FROM snapshots
-      WHERE client_id = ? AND date BETWEEN ? AND ?
-      ORDER BY date ASC
-    `).all(clientId, startDate, endDate);
+  static async findByClientAndDateRange(clientId, startDate, endDate) {
+    const { data, error } = await supabase
+      .from('snapshots')
+      .select('*')
+      .eq('client_id', clientId)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .order('date', { ascending: true });
+
+    if (error) throw error;
+    return data;
   }
 
-  static findLatestByClient(clientId) {
-    const db = getDatabase();
-    return db.prepare(`
-      SELECT * FROM snapshots WHERE client_id = ? ORDER BY date DESC LIMIT 1
-    `).get(clientId);
+  static async findLatestByClient(clientId) {
+    const { data, error } = await supabase
+      .from('snapshots')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static create(data) {
-    const db = getDatabase();
+  static async create(data) {
     const {
       clientId,
       date,
@@ -52,40 +77,47 @@ export class Snapshot {
       solPrice
     } = data;
 
-    const stmt = db.prepare(`
-      INSERT INTO snapshots (
-        client_id, date, total_value_usd, hodl_value_usd, gain_percent, apy,
-        btc_price, eth_price, sol_price
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(client_id, date) DO UPDATE SET
-        total_value_usd = excluded.total_value_usd,
-        hodl_value_usd = excluded.hodl_value_usd,
-        gain_percent = excluded.gain_percent,
-        apy = excluded.apy,
-        btc_price = excluded.btc_price,
-        eth_price = excluded.eth_price,
-        sol_price = excluded.sol_price
-    `);
+    // Upsert - insere ou atualiza se já existir para o mesmo client_id e date
+    const { data: snapshot, error } = await supabase
+      .from('snapshots')
+      .upsert({
+        client_id: clientId,
+        date,
+        total_value_usd: totalValueUsd,
+        hodl_value_usd: hodlValueUsd,
+        gain_percent: gainPercent,
+        apy,
+        btc_price: btcPrice || null,
+        eth_price: ethPrice || null,
+        sol_price: solPrice || null
+      }, {
+        onConflict: 'client_id,date'
+      })
+      .select()
+      .single();
 
-    const result = stmt.run(
-      clientId, date, totalValueUsd, hodlValueUsd, gainPercent, apy,
-      btcPrice || null, ethPrice || null, solPrice || null
-    );
-
-    return this.findByClient(clientId, 1)[0];
+    if (error) throw error;
+    return snapshot;
   }
 
-  static delete(id) {
-    const db = getDatabase();
-    const stmt = db.prepare('DELETE FROM snapshots WHERE id = ?');
-    return stmt.run(id);
+  static async delete(id) {
+    const { error } = await supabase
+      .from('snapshots')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { changes: 1 };
   }
 
-  static deleteByClient(clientId) {
-    const db = getDatabase();
-    const stmt = db.prepare('DELETE FROM snapshots WHERE client_id = ?');
-    return stmt.run(clientId);
+  static async deleteByClient(clientId) {
+    const { error } = await supabase
+      .from('snapshots')
+      .delete()
+      .eq('client_id', clientId);
+
+    if (error) throw error;
+    return { changes: 1 };
   }
 }
 

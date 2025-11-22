@@ -1,71 +1,86 @@
-import getDatabase from '../config/database.js';
+import supabase from '../config/supabase.js';
 
 export class Client {
-  static findAll() {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM clients WHERE is_active = 1 ORDER BY name').all();
+  static async findAll() {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+
+    if (error) throw error;
+    return data;
   }
 
-  static findById(id) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM clients WHERE id = ?').get(id);
+  static async findById(id) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static findByEmail(email) {
-    const db = getDatabase();
-    return db.prepare('SELECT * FROM clients WHERE email = ?').get(email);
+  static async findByEmail(email) {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
   }
 
-  static create(data) {
-    const db = getDatabase();
+  static async create(data) {
     const { name, email, passwordHash, role = 'client', entryDate } = data;
 
-    const stmt = db.prepare(`
-      INSERT INTO clients (name, email, password_hash, role, entry_date)
-      VALUES (?, ?, ?, ?, ?)
-    `);
+    const { data: newClient, error } = await supabase
+      .from('clients')
+      .insert({
+        name,
+        email,
+        password_hash: passwordHash,
+        role,
+        entry_date: entryDate
+      })
+      .select()
+      .single();
 
-    const result = stmt.run(name, email, passwordHash, role, entryDate);
-    return this.findById(result.lastInsertRowid);
+    if (error) throw error;
+    return newClient;
   }
 
-  static update(id, data) {
-    const db = getDatabase();
-    const updates = [];
-    const values = [];
+  static async update(id, data) {
+    const updates = {};
 
-    if (data.name !== undefined) {
-      updates.push('name = ?');
-      values.push(data.name);
-    }
-    if (data.email !== undefined) {
-      updates.push('email = ?');
-      values.push(data.email);
-    }
-    if (data.passwordHash !== undefined) {
-      updates.push('password_hash = ?');
-      values.push(data.passwordHash);
-    }
-    if (data.isActive !== undefined) {
-      updates.push('is_active = ?');
-      values.push(data.isActive ? 1 : 0);
-    }
+    if (data.name !== undefined) updates.name = data.name;
+    if (data.email !== undefined) updates.email = data.email;
+    if (data.passwordHash !== undefined) updates.password_hash = data.passwordHash;
+    if (data.isActive !== undefined) updates.is_active = data.isActive;
+    updates.updated_at = new Date().toISOString();
 
-    updates.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(id);
+    const { data: updated, error } = await supabase
+      .from('clients')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
 
-    const stmt = db.prepare(`
-      UPDATE clients SET ${updates.join(', ')} WHERE id = ?
-    `);
-
-    stmt.run(...values);
-    return this.findById(id);
+    if (error) throw error;
+    return updated;
   }
 
-  static delete(id) {
-    const db = getDatabase();
-    const stmt = db.prepare('UPDATE clients SET is_active = 0 WHERE id = ?');
-    return stmt.run(id);
+  static async delete(id) {
+    const { error } = await supabase
+      .from('clients')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) throw error;
+    return { changes: 1 };
   }
 
   static getDaysSinceEntry(entryDate) {
