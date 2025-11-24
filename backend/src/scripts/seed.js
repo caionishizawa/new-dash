@@ -1,9 +1,17 @@
+console.log('=== SEED INICIANDO ===');
+
 import AuthService from '../services/authService.js';
+console.log('AuthService OK');
 import Client from '../models/Client.js';
+console.log('Client OK');
 import Transaction from '../models/Transaction.js';
+console.log('Transaction OK');
 import PriceService from '../services/priceService.js';
+console.log('PriceService OK');
 import CalculationService from '../services/calculationService.js';
+console.log('CalculationService OK');
 import { config } from '../config/environment.js';
+console.log('Config OK');
 
 async function seed() {
   console.log('Iniciando seed do banco de dados Supabase...');
