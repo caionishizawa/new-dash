@@ -110,14 +110,12 @@ async function seed() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 
-// Executar se for chamado diretamente
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seed()
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error('Erro no seed:', error);
-      process.exit(1);
-    });
-}
+// Executar sempre quando chamado via npm run seed
+seed()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error('Erro no seed:', error);
+    process.exit(1);
+  });
 
 export default seed;
